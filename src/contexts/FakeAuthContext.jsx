@@ -7,6 +7,13 @@ const initialState = {
   isAuthenticated: false,
 };
 
+const FAKE_USER = {
+  name: "Jack",
+  email: "jack@example.com",
+  password: "qwerty",
+  avatar: "https://i.pravatar.cc/100?u=zz",
+};
+
 function reducer(state, action) {
   switch (action.type) {
     case "login":
@@ -26,21 +33,39 @@ function reducer(state, action) {
   }
 }
 
-const FAKE_USER = {
-  name: "Jack",
-  email: "jack@example.com",
-  password: "qwerty",
-  avatar: "https://i.pravatar.cc/100?u=zz",
-};
-
 function AuthProvider({ children }) {
   const [{ user, isAuthenticated }, dispatch] = useReducer(
     reducer,
     initialState
   );
+  async function loginWithAPI(email, password) {
+    try {
+      const response = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      // Handle successful API login response here
+      if (response.ok) {
+        console.log("Login successful:", data);
+        // Update user state based on API response
+        dispatch({ type: "login", payload: data }); // Assuming 'data' contains user information
+      } else {
+        console.error("Login error:", data.error); // Assuming 'data' contains error message
+        // Handle login errors here, like displaying an error message to the user.
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
   function login(email, password) {
-    if (email === FAKE_USER.email && password === FAKE_USER.password)
-      dispatch({ type: "login", payload: FAKE_USER });
+    loginWithAPI(email, password); // Call the API login function
   }
 
   function logout() {
